@@ -52,7 +52,6 @@
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 
-                // چاوەڕێکرنا چەند چرکەکێ تا کامێرا بێ دەنگ وێنەی بگرێت ب بێ دیتنا ڤیدیۆیێ ل سەر شاشەیێ
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
